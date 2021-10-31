@@ -1,57 +1,151 @@
-#include <Adafruit_MotorShield.h>
-//#include <Adafruit_MotorShield 2.h>
+/*
+ * Kevin McAleer
+ * 31 October 2021 - Happy Halloween 
+ * 
+ * Line Following Code
+ * See Lesson 07 for the full tutorial
+ * https://www.smarsfan.com/play/lessons/lesson_07_linefollow
+ * Watch the livestream video:
+ * https://youtu.be/u9VT32q7ero 
+ * 
+ *
+ */
 
-//#include <AFMotor.h>
+// set the line sensor thresholds
+int light_threshold = 650;
+int dark_threshold = 300;
+int lineNumber; // stores the line sensor value
+int lineSensorPin = 4;
 
-//SMARS Demo 2 with Line sensor
-//This sketch makes the robot follow a line (you can make it with insulating tape).
-//There is a small bug, find it and fix it!
-//you'll need an Adafruit Motor shield V1 https://goo.gl/7MvZeo and a IR sensor https://goo.gl/vPWfzx
+// set Motor A to Arduino Pins
+int motor_A = 12; // official Arduino Motor Shield uses D12
+int motor_B = 13; // official Arduino Motor Shield uses D13
+int buzzer = 4;
 
-// Create the motor shield object with the default I2C address
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
+// set the Motor Speed using the Arduino Pins
+int motor_A_speed = 10; // official Arduino Motor Shield uses D3
+int motor_B_speed = 11; // official Arduino Motor Shield uses D11
 
-// Select which 'port' M1, M2, M3 or M4. In this case, M1
-Adafruit_DCMotor *R_motor = AFMS.getMotor(2);
-Adafruit_DCMotor *L_motor = AFMS.getMotor(1);
+// set the time between motor on and motor off
+int wait_in_milliseconds = 10;
 
-//Adafruit_DCMotor R_motor(2); // defines Right motor pin
-//Adafruit_DCMotor L_motor(1); // defines Left motor pin
+/////////////////////////////////////
+/*
+ * Movement block of code, from the movement lessons
+ * https://www.smarsfan.com/play/lessons/lesson_01_movement
+ * https://www.smarsfan.com/play/lessons/lesson_02_turning
+ * 
+ */
 
-// declare variables
-int lineNumber; //defines the variable where it will store the line sensor value
+// move forward
+void forward() {
+  // set the direction to forward
+  digitalWrite(motor_A, LOW);  
+  digitalWrite(motor_B, HIGH);
+
+  // set to full speed
+  analogWrite(motor_A_speed, 255);
+  analogWrite(motor_B_speed, 255);
+
+  analogWrite(motor_A_speed);
+
+  // wait
+  delay(wait_in_milliseconds);
+
+  // stop
+  analogWrite(motor_A_speed, 0);
+  analogWrite(motor_B_speed, 0);
+}
+
+void backward(){
+  // set the direction to forward
+  digitalWrite(motor_A, HIGH);  
+  digitalWrite(motor_B, LOW);
+
+  // set to full speed
+  analogWrite(motor_A_speed, 255);
+  analogWrite(motor_B_speed, 255);
+
+  // wait
+  delay(wait_in_milliseconds);
+
+  // stop
+  analogWrite(motor_A_speed, 0);
+  analogWrite(motor_B_speed, 0);
+}
+
+void turnRight(){
+  // set the direction to forward
+  digitalWrite(motor_A, HIGH);  
+  digitalWrite(motor_B, HIGH);
+
+  // set to full speed
+  analogWrite(motor_A_speed, 255);
+  analogWrite(motor_B_speed, 255);
+
+  // wait
+  delay(wait_in_milliseconds);
+
+  // stop
+  analogWrite(motor_A_speed, 0);
+  analogWrite(motor_B_speed, 0);
+}
+
+void turnLeft(){
+  // set the direction to forward
+  digitalWrite(motor_A, LOW);  
+  digitalWrite(motor_B, LOW);
+
+  // set to full speed
+  analogWrite(motor_A_speed, 255);
+  analogWrite(motor_B_speed, 255);
+
+  // wait
+  delay(wait_in_milliseconds);
+
+  // stop
+  analogWrite(motor_A_speed, 0);
+  analogWrite(motor_B_speed, 0);
+}
+
+/////////////////////////////////////
+
+int readLineSensor() {
+  return analogRead(lineSensorPin);
+}
 
 void setup() {
-  Serial.begin(9600); // sets up Serial library at 9600 bps
-  //changes the following values to make the robot drive as straight as possible
-  L_motor->setSpeed(200); // sets L motor speed
-  R_motor->setSpeed(140); // sets R motor speed
-  R_motor->run(RELEASE); //turns L motor on
-  L_motor->run(RELEASE); //turns R motor on
+  // set the Serial to 9600 baud and open it for comms
+  Serial.begin(9600);
+
+  // set the Arduino pin to OUTPUT mode
+  pinMode(motor_A, OUTPUT);
+  pinMode(motor_B, OUTPUT);
+  pinMode(buzzer, OUTPUT);
 }
 
 void loop() {
-  lineNumber = analogRead(A4); //reads the sensor value from pin A4 and stores it in the variable lineNumber
-  
-  while(lineNumber>800) // repeats the following part of code until the light sensor will find a darker zone
+  // Read the value from the line sensor (connected to the line sensor pin)
+  lineNumber = readLineSensor();
+
+  // move forward while the line sensor is white
+  while(lineNumber > light_threshold)
   {
-    L_motor->run(FORWARD); //moves motor L Forward
-    R_motor->run(FORWARD); //moves motor L Forward
-    lineNumber= analogRead(A4); //reads the sensor value from pin A4 and stores it in the variable lineNumber
-  };
-  
-  if(lineNumber<800) // repeats the following part of code until the light sensor will find a darker zone
-  {
-    L_motor->run(FORWARD); //moves motor L Forward
-    R_motor->run(BACKWARD); //moves motor L Forward
-    //reads the sensor value from pin A4 and stores it in the variable lineNumber
+       Serial.println("move forward"); 
+    // move forward
+    forward();
+     Serial.println(lineNumber); 
+    lineNumber = readLineSensor();
   }
-  
-  // the following operations will make the robot goes backward for 2 seconds and turns left for 1.5 seconds
+   Serial.println(lineNumber); 
+  if(lineNumber < light_threshold){
+    turnLeft(); 
+  } 
   else {
-    L_motor->run(BACKWARD); //moves motor L Backward
-    R_motor->run(FORWARD); //moves motor L Forward
-  };
-  
-  Serial.println(lineNumber); //send the value to the serial monitor
+     Serial.println(lineNumber); 
+    backward();
+    backward();
+    turnLeft();
+  }
+  Serial.println(lineNumber); 
 }
