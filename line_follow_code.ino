@@ -1,3 +1,5 @@
+#include <SoftwareSerial.h>
+
 /*
  * Kevin McAleer
  * 31 October 2021 - Happy Halloween 
@@ -11,23 +13,22 @@
  *
  */
 
-// set the line sensor thresholds
-int light_threshold = 650;
-int dark_threshold = 300;
-int lineNumber; // stores the line sensor value
-int lineSensorPin = 4;
+int lineSensorValue; // stores the line sensor value
+int lineSensorPin = 5;
 
 // set Motor A to Arduino Pins
 int motor_A = 12; // official Arduino Motor Shield uses D12
 int motor_B = 13; // official Arduino Motor Shield uses D13
-int buzzer = 4;
+//int buzzer = 4;
 
 // set the Motor Speed using the Arduino Pins
-int motor_A_speed = 10; // official Arduino Motor Shield uses D3
-int motor_B_speed = 11; // official Arduino Motor Shield uses D11
+int motor_A_speed = 3; // official Arduino Motor Shield uses D3, Fundumoto uses D10
+int motor_B_speed = 11; // official Arduino Motor Shield uses D11, Fundumoto uses D11
 
 // set the time between motor on and motor off
 int wait_in_milliseconds = 10;
+
+SoftwareSerial mySerial(2,3);
 
 /////////////////////////////////////
 /*
@@ -39,6 +40,8 @@ int wait_in_milliseconds = 10;
 
 // move forward
 void forward() {
+  Serial.println("Forward");
+  mySerial.print("Forward");
   // set the direction to forward
   digitalWrite(motor_A, LOW);  
   digitalWrite(motor_B, HIGH);
@@ -46,8 +49,6 @@ void forward() {
   // set to full speed
   analogWrite(motor_A_speed, 255);
   analogWrite(motor_B_speed, 255);
-
-  analogWrite(motor_A_speed);
 
   // wait
   delay(wait_in_milliseconds);
@@ -58,6 +59,8 @@ void forward() {
 }
 
 void backward(){
+  Serial.println("Backward");
+  mySerial.print("Backward");
   // set the direction to forward
   digitalWrite(motor_A, HIGH);  
   digitalWrite(motor_B, LOW);
@@ -75,6 +78,8 @@ void backward(){
 }
 
 void turnRight(){
+  Serial.println("Turn Right");
+  mySerial.print("turn right");
   // set the direction to forward
   digitalWrite(motor_A, HIGH);  
   digitalWrite(motor_B, HIGH);
@@ -92,6 +97,8 @@ void turnRight(){
 }
 
 void turnLeft(){
+  Serial.println("Turn Left");
+  mySerial.print("turn left");
   // set the direction to forward
   digitalWrite(motor_A, LOW);  
   digitalWrite(motor_B, LOW);
@@ -111,41 +118,37 @@ void turnLeft(){
 /////////////////////////////////////
 
 int readLineSensor() {
-  return analogRead(lineSensorPin);
+  return digitalRead(lineSensorPin);
 }
 
 void setup() {
   // set the Serial to 9600 baud and open it for comms
   Serial.begin(9600);
+  mySerial.begin(9600);
+  mySerial.println("Online");
 
   // set the Arduino pin to OUTPUT mode
   pinMode(motor_A, OUTPUT);
   pinMode(motor_B, OUTPUT);
-  pinMode(buzzer, OUTPUT);
+  pinMode(lineSensorPin, INPUT);
 }
 
 void loop() {
   // Read the value from the line sensor (connected to the line sensor pin)
-  lineNumber = readLineSensor();
+  lineSensorValue = readLineSensor();
 
   // move forward while the line sensor is white
-  while(lineNumber > light_threshold)
+
+  if (lineSensorValue == 1)
   {
-       Serial.println("move forward"); 
     // move forward
     forward();
-     Serial.println(lineNumber); 
-    lineNumber = readLineSensor();
+//     Serial.println(lineSensorValue); 
   }
-   Serial.println(lineNumber); 
-  if(lineNumber < light_threshold){
-    turnLeft(); 
+  else{
+    turnRight(); 
   } 
-  else {
-     Serial.println(lineNumber); 
-    backward();
-    backward();
-    turnLeft();
-  }
-  Serial.println(lineNumber); 
+  lineSensorValue = readLineSensor();
+  Serial.println(lineSensorValue); 
+  mySerial.println(lineSensorValue);
 }

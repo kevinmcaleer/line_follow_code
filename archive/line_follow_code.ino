@@ -19,7 +19,7 @@ Adafruit_DCMotor *L_motor = AFMS.getMotor(1);
 //Adafruit_DCMotor L_motor(1); // defines Left motor pin
 
 // declare variables
-int lineNumber; //defines the variable where it will store the line sensor value
+int lineSensorValue; //defines the variable where it will store the line sensor value
 
 void setup() {
   Serial.begin(9600); // sets up Serial library at 9600 bps
@@ -31,16 +31,16 @@ void setup() {
 }
 
 void loop() {
-  lineNumber = analogRead(A4); //reads the sensor value from pin A4 and stores it in the variable lineNumber
+  lineSensorValue = analogRead(A4); //reads the sensor value from pin A4 and stores it in the variable lineNumber
   
-  while(lineNumber>800) // repeats the following part of code until the light sensor will find a darker zone
+  while(lineSensorValue>800) // repeats the following part of code until the light sensor will find a darker zone
   {
     L_motor->run(FORWARD); //moves motor L Forward
     R_motor->run(FORWARD); //moves motor L Forward
-    lineNumber= analogRead(A4); //reads the sensor value from pin A4 and stores it in the variable lineNumber
+    lineSensorValue= analogRead(A4); //reads the sensor value from pin A4 and stores it in the variable lineNumber
   };
   
-  if(lineNumber<800) // repeats the following part of code until the light sensor will find a darker zone
+  if(lineSensorValue<800) // repeats the following part of code until the light sensor will find a darker zone
   {
     L_motor->run(FORWARD); //moves motor L Forward
     R_motor->run(BACKWARD); //moves motor L Forward
@@ -53,5 +53,5 @@ void loop() {
     R_motor->run(FORWARD); //moves motor L Forward
   };
   
-  Serial.println(lineNumber); //send the value to the serial monitor
+  Serial.println(lineSensorValue); //send the value to the serial monitor
 }
